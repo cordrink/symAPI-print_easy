@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,12 +13,19 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ORM\HasLifecycleCallbacks]
+#[ApiResource]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $lastName = null;
 
     #[ORM\Column(length: 180)]
     private ?string $email = null;
@@ -29,30 +37,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     /**
-     * @var string | null The hashed password
+     * @var string The hashed password
      */
     #[ORM\Column]
     private ?string $password = null;
 
+    #[ORM\OneToOne(inversedBy: '_user', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Profil $profil = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
-    private ?Customer $customer = null;
+    /**
+     * @var Collection<int, Message>
+     */
+    /*#[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]
+    private Collection $messages;*/
 
     /**
-     * @var Collection<int, Notification>
+     * @var Collection<int, Chat>
      */
-    #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user')]
-    private Collection $notifications;
+    /*#[ORM\ManyToMany(targetEntity: Chat::class, mappedBy: 'user1')]
+    private Collection $chats;*/
 
     public function __construct()
     {
-        $this->notifications = new ArrayCollection();
+        //$this->messages = new ArrayCollection();
+        //$this->chats = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
-    public function setCreatedAtValue(): void
+    public function setCreateAtValue(): void
     {
         $this->createdAt = new \DateTimeImmutable();
     }
@@ -81,13 +97,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string)$this->email;
+        return (string) $this->email;
     }
 
     /**
-     * @return list<string>
      * @see UserInterface
      *
+     * @return list<string>
      */
     public function getRoles(): array
     {
@@ -132,6 +148,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
+    public function getProfil(): ?Profil
+    {
+        return $this->profil;
+    }
+
+    public function setProfil(Profil $profil): static
+    {
+        $this->profil = $profil;
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
@@ -144,50 +172,84 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getCustomer(): ?Customer
+    public function getFirstName(): ?string
     {
-        return $this->customer;
+        return $this->firstName;
     }
 
-    public function setCustomer(Customer $customer): static
+    public function setFirstName(string $firstName): static
     {
-        // set the owning side of the relation if necessary
-        if ($customer->getUser() !== $this) {
-            $customer->setUser($this);
-        }
+        $this->firstName = $firstName;
 
-        $this->customer = $customer;
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(string $lastName): static
+    {
+        $this->lastName = $lastName;
 
         return $this;
     }
 
     /**
-     * @return Collection<int, Notification>
+     * @return Collection<int, Message>
      */
-    public function getNotifications(): Collection
+    /*public function getMessages(): Collection
     {
-        return $this->notifications;
+        return $this->messages;
     }
 
-    public function addNotification(Notification $notification): static
+    public function addMessage(Message $message): static
     {
-        if (!$this->notifications->contains($notification)) {
-            $this->notifications->add($notification);
-            $notification->setUser($this);
+        if (!$this->messages->contains($message)) {
+            $this->messages->add($message);
+            $message->setSender($this);
         }
 
         return $this;
     }
 
-    public function removeNotification(Notification $notification): static
+    public function removeMessage(Message $message): static
     {
-        if ($this->notifications->removeElement($notification)) {
+        if ($this->messages->removeElement($message)) {
             // set the owning side to null (unless already changed)
-            if ($notification->getUser() === $this) {
-                $notification->setUser(null);
+            if ($message->getSender() === $this) {
+                $message->setSender(null);
             }
         }
 
         return $this;
+    }*/
+
+    /**
+     * @return Collection<int, Chat>
+     */
+    /*public function getChats(): Collection
+    {
+        return $this->chats;
     }
+
+    public function addChat(Chat $chat): static
+    {
+        if (!$this->chats->contains($chat)) {
+            $this->chats->add($chat);
+            $chat->addUser1($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChat(Chat $chat): static
+    {
+        if ($this->chats->removeElement($chat)) {
+            $chat->removeUser1($this);
+        }
+
+        return $this;
+    }*/
 }

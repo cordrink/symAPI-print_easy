@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\DocumentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,6 +13,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[Vich\Uploadable]
+#[ApiResource]
 class Document
 {
     #[ORM\Id]
@@ -41,15 +43,14 @@ class Document
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $printedAt = null;
 
-    #[ORM\ManyToOne(inversedBy: 'documents')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Customer $customer = null;
-
     /**
      * @var Collection<int, Notification>
      */
     #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'document')]
     private Collection $notifications;
+
+    #[ORM\ManyToOne(inversedBy: 'documents')]
+    private ?Profil $profil = null;
 
     public function __construct()
     {
@@ -125,18 +126,6 @@ class Document
         return $this;
     }
 
-    public function getUser(): ?Customer
-    {
-        return $this->customer;
-    }
-
-    public function setUser(?Customer $user): static
-    {
-        $this->customer = $user;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, Notification>
      */
@@ -163,6 +152,18 @@ class Document
                 $notification->setDocument(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getProfil(): ?Profil
+    {
+        return $this->profil;
+    }
+
+    public function setProfil(?Profil $profil): static
+    {
+        $this->profil = $profil;
 
         return $this;
     }

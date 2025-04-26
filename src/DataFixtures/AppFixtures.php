@@ -2,8 +2,8 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Customer;
 use App\Entity\Document;
+use App\Entity\Profil;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -34,30 +34,30 @@ class AppFixtures extends Fixture
         for ($i = 0; $i < 20; $i++) {
             $user = new User();
             $hash = $this->encoder->hashPassword($user, 'password');
-            $user->setEmail('email' . $i . '@gmail.com')
-                ->setPassword($hash);
+            $user
+                ->setFirstName($faker->firstName)
+                ->setLastName($faker->lastName)
+                ->setEmail('email' . $i . '@gmail.com')
+                ->setPassword($hash)
+            ;
+
+            $profil = new Profil();
+            $profil->setCompany($faker->company);
+
+            $user->setProfil($profil);
 
             $manager->persist($user);
-
-            $customer = new Customer();
-            $customer->setFirstName($faker->firstName)
-                ->setLastName($faker->lastName)
-                ->setCompany($faker->company)
-                ->setUser($user);
-
-            $manager->persist($customer);
-
+            $manager->persist($profil);
 
             for ($k = 0; $k < random_int(3, 10); $k++) {
                 $document = new Document();
                 $document->setFileName($faker->imageUrl($width = 640, $height = 480))
                     ->setUploadedAt(new \DateTimeImmutable())
                     ->setStatus($faker->randomElement(['attente', 'imprime']))
-                    ->setUser($customer);
+                    ->setProfil($profil);
 
                 $manager->persist($document);
             }
-
         }
 
         $manager->flush();
