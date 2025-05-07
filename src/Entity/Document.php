@@ -3,17 +3,47 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\DocumentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[Vich\Uploadable]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(),
+        new Put(),
+        new Patch(),
+        new Delete()
+    ],
+    normalizationContext: ['groups' => ['documents_read']],
+    paginationEnabled: true
+)]
+#[ApiResource(
+    uriTemplate: '/profil/{id}/document',
+    operations: [new Get()],
+    uriVariables: [
+        'id' => new Link(
+            fromProperty: 'profil',
+            fromClass: Profil::class
+        )
+    ]
+)]
+
 class Document
 {
     #[ORM\Id]
@@ -23,6 +53,7 @@ class Document
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
+    #[Groups('documents_read', 'profils_read')]
     private ?string $fileName = null;
 
     #[Assert\File(
@@ -34,6 +65,7 @@ class Document
 
     #[ORM\Column(length: 50)]
     #[Assert\Choice(["attente", "imprime"], message: "Le statut doit être 'attente' ou 'imprime'. " )]
+    #[Groups('documents_read')]
     private ?string $status = 'attente';
 
     #[ORM\Column]

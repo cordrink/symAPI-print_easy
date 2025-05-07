@@ -2,31 +2,48 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ProfilRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProfilRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['profils_read']],
+    order: ["company" => "asc"],
+    paginationEnabled: true,
+    paginationItemsPerPage: 10,
+)]
+#[ApiFilter(SearchFilter::class, properties: ["company" => 'partial'])]
+#[ApiFilter(OrderFilter::class)]
 class Profil
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups("profils_read")]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups("profils_read")]
+    #[Assert\Length]
     private ?string $company = null;
 
     #[ORM\OneToOne(mappedBy: 'profil', cascade: ['persist', 'remove'])]
+    #[Groups("profils_read")]
     private ?User $_user = null;
 
     /**
      * @var Collection<int, Document>
      */
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'profil')]
+    #[Groups("profils_read")]
     private Collection $documents;
 
     public function __construct()

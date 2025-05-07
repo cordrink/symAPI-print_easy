@@ -50,6 +50,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeImmutable $createdAt = null;
 
     /**
+     * @var Collection<int, Address>
+     */
+    #[ORM\OneToMany(targetEntity: Address::class, mappedBy: '_user')]
+    private Collection $addresses;
+
+    /**
      * @var Collection<int, Message>
      */
     /*#[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]
@@ -65,6 +71,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         //$this->messages = new ArrayCollection();
         //$this->chats = new ArrayCollection();
+        $this->addresses = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -252,4 +259,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }*/
+
+    /**
+     * @return Collection<int, Address>
+     */
+    public function getAddresses(): Collection
+    {
+        return $this->addresses;
+    }
+
+    public function addAddress(Address $address): static
+    {
+        if (!$this->addresses->contains($address)) {
+            $this->addresses->add($address);
+            $address->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAddress(Address $address): static
+    {
+        if ($this->addresses->removeElement($address)) {
+            // set the owning side to null (unless already changed)
+            if ($address->getUser() === $this) {
+                $address->setUser(null);
+            }
+        }
+
+        return $this;
+    }
 }
