@@ -19,3 +19,7 @@ api_platform:
     collection:
         pagination:
             enabled_parameter_name: pager
+    formats :
+        jsonld: ['application/ld+json']
+        multipart: ['multipart/form-data']
+        json: ['application/json']

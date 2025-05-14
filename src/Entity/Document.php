@@ -7,13 +7,12 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
-use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use App\Repository\DocumentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
@@ -25,10 +24,9 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
     operations: [
         new Get(),
         new GetCollection(),
-        new Post(),
-        new Put(),
-        new Patch(),
-        new Delete()
+        new Post(
+            denormalizationContext: ['groups' => ['document_write']]
+        )
     ],
     normalizationContext: ['groups' => ['documents_read']],
     paginationEnabled: true
@@ -52,7 +50,6 @@ class Document
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank]
     #[Groups('documents_read')]
     private ?string $fileName = null;
 
@@ -61,7 +58,9 @@ class Document
         extensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
         extensionsMessage: "Veuillez selectionner un fichier de type : jpg, jpeg, png, pdf, doc, docx"
     )]
-    private $file;
+    #[Vich\UploadableField(mapping: 'documents', fileNameProperty: 'fileName')]
+    #[Groups('document_write')]
+    private ?File $file;
 
     #[ORM\Column(length: 50)]
     #[Assert\Choice(["attente", "imprime"], message: "Le statut doit être 'attente' ou 'imprime'. " )]
@@ -69,7 +68,6 @@ class Document
     private ?string $status = 'attente';
 
     #[ORM\Column]
-    #[Assert\DateTime]
     private ?\DateTimeImmutable $uploadedAt = null;
 
     #[ORM\Column(nullable: true)]
@@ -122,6 +120,11 @@ class Document
     public function setFile($file): static
     {
         $this->file = $file;
+
+        if (null !== $this->file) {
+            $this->uploadedAt = new \DateTimeImmutable();
+        }
+
         return $this;
     }
 
