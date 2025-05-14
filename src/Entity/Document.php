@@ -53,7 +53,7 @@ class Document
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
-    #[Groups('documents_read', 'profils_read')]
+    #[Groups('documents_read')]
     private ?string $fileName = null;
 
     #[Assert\File(
@@ -83,6 +83,9 @@ class Document
 
     #[ORM\ManyToOne(inversedBy: 'documents')]
     private ?Profil $profil = null;
+
+    #[ORM\ManyToOne(inversedBy: 'documents')]
+    private ?Order $_order = null;
 
     public function __construct()
     {
@@ -196,6 +199,18 @@ class Document
     public function setProfil(?Profil $profil): static
     {
         $this->profil = $profil;
+
+        return $this;
+    }
+
+    public function getOrder(): ?Order
+    {
+        return $this->_order;
+    }
+
+    public function setOrder(?Order $_order): static
+    {
+        $this->_order = $_order;
 
         return $this;
     }

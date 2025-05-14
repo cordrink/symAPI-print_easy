@@ -56,22 +56,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $addresses;
 
     /**
+     * @var Collection<int, Order>
+     */
+    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'user')]
+    private Collection $orders;
+
+    /**
+     * @var Collection<int, Message>
+     */
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]
+    private Collection $messages;
+
+    /**
      * @var Collection<int, Message>
      */
     /*#[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]
     private Collection $messages;*/
 
-    /**
-     * @var Collection<int, Chat>
-     */
-    /*#[ORM\ManyToMany(targetEntity: Chat::class, mappedBy: 'user1')]
-    private Collection $chats;*/
-
     public function __construct()
     {
-        //$this->messages = new ArrayCollection();
-        //$this->chats = new ArrayCollection();
         $this->addresses = new ArrayCollection();
+        $this->orders = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -204,63 +209,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, Message>
-     */
-    /*public function getMessages(): Collection
-    {
-        return $this->messages;
-    }
-
-    public function addMessage(Message $message): static
-    {
-        if (!$this->messages->contains($message)) {
-            $this->messages->add($message);
-            $message->setSender($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMessage(Message $message): static
-    {
-        if ($this->messages->removeElement($message)) {
-            // set the owning side to null (unless already changed)
-            if ($message->getSender() === $this) {
-                $message->setSender(null);
-            }
-        }
-
-        return $this;
-    }*/
-
-    /**
-     * @return Collection<int, Chat>
-     */
-    /*public function getChats(): Collection
-    {
-        return $this->chats;
-    }
-
-    public function addChat(Chat $chat): static
-    {
-        if (!$this->chats->contains($chat)) {
-            $this->chats->add($chat);
-            $chat->addUser1($this);
-        }
-
-        return $this;
-    }
-
-    public function removeChat(Chat $chat): static
-    {
-        if ($this->chats->removeElement($chat)) {
-            $chat->removeUser1($this);
-        }
-
-        return $this;
-    }*/
-
-    /**
      * @return Collection<int, Address>
      */
     public function getAddresses(): Collection
@@ -284,6 +232,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($address->getUser() === $this) {
                 $address->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Order>
+     */
+    public function getOrders(): Collection
+    {
+        return $this->orders;
+    }
+
+    public function addOrder(Order $order): static
+    {
+        if (!$this->orders->contains($order)) {
+            $this->orders->add($order);
+            $order->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrder(Order $order): static
+    {
+        if ($this->orders->removeElement($order)) {
+            // set the owning side to null (unless already changed)
+            if ($order->getUser() === $this) {
+                $order->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function addMessage(Message $message): static
+    {
+        if (!$this->messages->contains($message)) {
+            $this->messages->add($message);
+            $message->setSender($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessage(Message $message): static
+    {
+        if ($this->messages->removeElement($message)) {
+            // set the owning side to null (unless already changed)
+            if ($message->getSender() === $this) {
+                $message->setSender(null);
             }
         }
 

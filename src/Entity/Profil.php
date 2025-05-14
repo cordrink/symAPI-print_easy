@@ -32,7 +32,6 @@ class Profil
 
     #[ORM\Column(length: 255)]
     #[Groups("profils_read")]
-    #[Assert\Length]
     private ?string $company = null;
 
     #[ORM\OneToOne(mappedBy: 'profil', cascade: ['persist', 'remove'])]

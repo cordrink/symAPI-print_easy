@@ -2,63 +2,51 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\MessageRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
+#[ApiResource(
+    normalizationContext: ['groups' => ['message_read']],
+    denormalizationContext: ['groups' => ['message_write']],
+)]
 class Message
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['message_read'])]
     private ?int $id = null;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $content = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $created = null;
 
     #[ORM\ManyToOne(inversedBy: 'messages')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['message_read'])]
     private ?User $sender = null;
 
     #[ORM\ManyToOne(inversedBy: 'messages')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $receiver = null;
+    #[Groups(['message_read'])]
+    private ?Conversation $Conversation = null;
 
-    #[ORM\ManyToOne(inversedBy: 'messages')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Chat $chat = null;
+    #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['message_read', 'message_write'])]
+    private ?string $content = null;
+
+    #[ORM\Column]
+    #[Groups(['message_read'])]
+    private ?\DateTimeImmutable $sentAt = null;
+
+    public function __construct()
+    {
+        $this->sentAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getContent(): ?string
-    {
-        return $this->content;
-    }
-
-    public function setContent(?string $content): static
-    {
-        $this->content = $content;
-
-        return $this;
-    }
-
-    public function getCreated(): ?\DateTimeImmutable
-    {
-        return $this->created;
-    }
-
-    public function setCreated(\DateTimeImmutable $created): static
-    {
-        $this->created = $created;
-
-        return $this;
     }
 
     public function getSender(): ?User
@@ -73,26 +61,38 @@ class Message
         return $this;
     }
 
-    public function getReceiver(): ?User
+    public function getContent(): ?string
     {
-        return $this->receiver;
+        return $this->content;
     }
 
-    public function setReceiver(?User $receiver): static
+    public function setContent(string $content): static
     {
-        $this->receiver = $receiver;
+        $this->content = $content;
 
         return $this;
     }
 
-    public function getChat(): ?Chat
+    public function getSentAt(): ?\DateTimeImmutable
     {
-        return $this->chat;
+        return $this->sentAt;
     }
 
-    public function setChat(?Chat $chat): static
+    public function setSentAt(\DateTimeImmutable $sentAt): static
     {
-        $this->chat = $chat;
+        $this->sentAt = $sentAt;
+
+        return $this;
+    }
+
+    public function getConversation(): ?Conversation
+    {
+        return $this->Conversation;
+    }
+
+    public function setConversation(?Conversation $Conversation): static
+    {
+        $this->Conversation = $Conversation;
 
         return $this;
     }
