@@ -2,9 +2,8 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Document;
-use App\Entity\Profil;
-use App\Entity\User;
+use App\Entity\Customer;
+use App\Entity\Invoice;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
@@ -32,31 +31,24 @@ class AppFixtures extends Fixture
         $faker = Factory::create('fr_FR');
 
         for ($i = 0; $i < 20; $i++) {
-            $user = new User();
-            $hash = $this->encoder->hashPassword($user, 'password');
-            $user
-                ->setFirstName($faker->firstName)
+            $customer = new Customer();
+            $customer->setFirstName($faker->firstName)
                 ->setLastName($faker->lastName)
-                ->setEmail('email' . $i . '@gmail.com')
-                ->setPassword($hash)
+                ->setEmail($faker->email)
+                ->setCompany($faker->company)
             ;
 
-            $profil = new Profil();
-            $profil->setCompany($faker->company);
+            $manager->persist($customer);
 
-            $user->setProfil($profil);
+            for ($j = 0; $j < random_int(3, 10); $j++) {
+                $invoice = new Invoice();
+                $invoice->setAmount($faker->randomFloat(2, 250, 5000))
+                    ->setSentAt(new \DateTimeImmutable())
+                    ->setStatus($faker->randomElement(['SENT', 'PAID', 'CANCELLED']))
+                    ->setCustomer($customer)
+                ;
 
-            $manager->persist($user);
-            $manager->persist($profil);
-
-            for ($k = 0; $k < random_int(3, 10); $k++) {
-                $document = new Document();
-                $document->setFileName($faker->imageUrl($width = 640, $height = 480))
-                    ->setUploadedAt(new \DateTimeImmutable())
-                    ->setStatus($faker->randomElement(['attente', 'imprime']))
-                    ->setProfil($profil);
-
-                $manager->persist($document);
+                $manager->persist($invoice);
             }
         }
 
