@@ -51,30 +51,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\OneToOne(inversedBy: '_user', cascade: ['persist', 'remove'])]
+    /*#[ORM\OneToOne(inversedBy: '_user', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Profil $profil = null;
+    private ?Profil $profil = null;*/
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
     /**
+     * @var Collection<int, Customer>
+     */
+    #[ORM\OneToMany(targetEntity: Customer::class, mappedBy: 'user')]
+    private Collection $customers;
+
+    /**
      * @var Collection<int, Address>
      */
-    #[ORM\OneToMany(targetEntity: Address::class, mappedBy: '_user')]
-    private Collection $addresses;
+   /* #[ORM\OneToMany(targetEntity: Address::class, mappedBy: '_user')]
+    private Collection $addresses;*/
 
     /**
      * @var Collection<int, Order>
      */
-    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'user')]
-    private Collection $orders;
+    /*#[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'user')]
+    private Collection $orders;*/
 
     /**
      * @var Collection<int, Message>
      */
-    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]
-    private Collection $messages;
+    /*#[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]
+    private Collection $messages;*/
 
     /**
      * @var Collection<int, Message>
@@ -84,8 +90,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->addresses = new ArrayCollection();
-        $this->orders = new ArrayCollection();
+        /*$this->addresses = new ArrayCollection();
+        $this->orders = new ArrayCollection();*/
+        $this->customers = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -169,7 +176,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-    public function getProfil(): ?Profil
+    /*public function getProfil(): ?Profil
     {
         return $this->profil;
     }
@@ -179,7 +186,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->profil = $profil;
 
         return $this;
-    }
+    }*/
 
     public function getCreatedAt(): ?\DateTimeImmutable
     {
@@ -220,7 +227,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, Address>
      */
-    public function getAddresses(): Collection
+    /*public function getAddresses(): Collection
     {
         return $this->addresses;
     }
@@ -245,12 +252,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
-    }
+    }*/
 
     /**
      * @return Collection<int, Order>
      */
-    public function getOrders(): Collection
+    /*public function getOrders(): Collection
     {
         return $this->orders;
     }
@@ -275,12 +282,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
-    }
+    }*/
 
     /**
      * @return Collection<int, Message>
      */
-    public function getMessages(): Collection
+    /*public function getMessages(): Collection
     {
         return $this->messages;
     }
@@ -301,6 +308,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($message->getSender() === $this) {
                 $message->setSender(null);
+            }
+        }
+
+        return $this;
+    }*/
+
+    /**
+     * @return Collection<int, Customer>
+     */
+    public function getCustomers(): Collection
+    {
+        return $this->customers;
+    }
+
+    public function addCustomer(Customer $customer): static
+    {
+        if (!$this->customers->contains($customer)) {
+            $this->customers->add($customer);
+            $customer->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCustomer(Customer $customer): static
+    {
+        if ($this->customers->removeElement($customer)) {
+            // set the owning side to null (unless already changed)
+            if ($customer->getUser() === $this) {
+                $customer->setUser(null);
             }
         }
 

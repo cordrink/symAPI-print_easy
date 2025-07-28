@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Customer;
 use App\Entity\Invoice;
+use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
@@ -30,27 +31,41 @@ class AppFixtures extends Fixture
     {
         $faker = Factory::create('fr_FR');
 
-        for ($i = 0; $i < 20; $i++) {
-            $customer = new Customer();
-            $customer->setFirstName($faker->firstName)
+        for ($u = 0; $u <10; $u++) {
+            $user = new User();
+            $user->setFirstName($faker->firstName)
                 ->setLastName($faker->lastName)
                 ->setEmail($faker->email)
-                ->setCompany($faker->company)
+                ->setPassword($this->encoder->hashPassword($user, 'test'))
             ;
 
-            $manager->persist($customer);
+            $manager->persist($user);
 
-            for ($j = 0; $j < random_int(3, 10); $j++) {
-                $invoice = new Invoice();
-                $invoice->setAmount($faker->randomFloat(2, 250, 5000))
-                    ->setSentAt(new \DateTimeImmutable())
-                    ->setStatus($faker->randomElement(['SENT', 'PAID', 'CANCELLED']))
-                    ->setCustomer($customer)
+            for ($i = 0; $i < random_int(5, 20); $i++) {
+                $customer = new Customer();
+                $customer->setFirstName($faker->firstName)
+                    ->setLastName($faker->lastName)
+                    ->setEmail($faker->email)
+                    ->setCompany($faker->company)
+                    ->setUser($user)
                 ;
 
-                $manager->persist($invoice);
+                $manager->persist($customer);
+
+                for ($j = 0; $j < random_int(3, 10); $j++) {
+                    $invoice = new Invoice();
+                    $invoice->setAmount($faker->randomFloat(2, 250, 5000))
+                        ->setSentAt(new \DateTimeImmutable())
+                        ->setStatus($faker->randomElement(['SENT', 'PAID', 'CANCELLED']))
+                        ->setCustomer($customer)
+                    ;
+
+                    $manager->persist($invoice);
+                }
             }
         }
+
+
 
         $manager->flush();
     }
